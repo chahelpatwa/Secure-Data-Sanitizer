@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Sanitizer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            margin-top: 50px;
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">Input Sanitizer</h1>
+        <form id="sanitizerForm">
+            <div class="mb-3">
+                <label for="userInput" class="form-label">Enter your input:</label>
+                <textarea id="userInput" class="form-control" rows="3" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Sanitize Input</button>
+        </form>
+        <div id="result" class="result d-none"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('sanitizerForm');
+        const resultDiv = document.getElementById('result');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const userInput = document.getElementById('userInput').value;
+
+            try {
+                const response = await fetch('http://127.0.0.1:8080/sanitize', { // Updated URL to port 8080
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ input: userInput })
+                });
+
+                if (!response.ok) {
+                    const errorDetails = await response.json();
+                    throw new Error(`Server error: ${response.statusText} - ${errorDetails.message}`);
+                }
+
+                const result = await response.json();
+
+                resultDiv.textContent = result.sanitizedInput;
+                resultDiv.className = 'result alert alert-success';
+                resultDiv.classList.remove('d-none');
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.textContent = `Error connecting to the server: ${error.message}`;
+                resultDiv.className = 'result alert alert-danger';
+                resultDiv.classList.remove('d-none');
+            }
+        });
+    </script>
+</body>
+</html>
